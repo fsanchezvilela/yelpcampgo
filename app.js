@@ -24,7 +24,8 @@ var  commentRoutes      = require("./routes/comments"),
 //-----------------------SETUP--------------------------------------///  
 
 // conectar a la base de datos si no existe la crea dinamicamente     
-mongoose.connect("mongodb://localhost/yelp_camp_v10");
+//mongoose.connect("mongodb://localhost/yelp_camp_v10");
+mongoose.connect("mongodb://fernando:fercho57@ds125342.mlab.com:25342/yelpcampdb");
 // sacar variables del html body para post request
 app.use(bodyParser.urlencoded({extended:true}));
 // setear el ejs en view. para que los archivos no terminen en .ejs
