@@ -22,12 +22,12 @@ var  commentRoutes      = require("./routes/comments"),
      campgroundsRoutes  = require("./routes/campgrounds");
 
 //-----------------------SETUP--------------------------------------///  
+//seteando un backup para la database. si se rompe usas local 
+var url = process.env.DB_URL || "mongodb://localhost/yelp_camp";
 
 // conectar a la base de datos si no existe la crea dinamicamente
-// localversion
-mongoose.connect(process.env.DB_URL);
-//cloud version
-//mongoose.connect("mongodb://fernando:fercho57@ds125342.mlab.com:25342/yelpcampdb");
+// localversion and cloud using mongolabdb
+mongoose.connect(url);
 // sacar variables del html body para post request
 app.use(bodyParser.urlencoded({extended:true}));
 // setear el ejs en view. para que los archivos no terminen en .ejs
