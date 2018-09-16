@@ -1,7 +1,7 @@
 //================================================
 //          SET UP EXPRESS-ROUTER.
 //================================================
-
+var ocdkey      = process.env.OCD_API_KEY;
 var express     = require("express");
 var Campground  = require("../models/campground");
 var router      = express.Router();
@@ -10,7 +10,7 @@ var NodeGeocoder = require('node-geocoder');
 var options = {
   provider: 'opencage',
   httpAdapter: 'https',
-  apiKey: 'f7199edf6b0a48b9a7799a7169e56893',
+  apiKey: ocdkey,
   formatter:null
 };
 

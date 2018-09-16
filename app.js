@@ -24,7 +24,9 @@ var  commentRoutes      = require("./routes/comments"),
 //-----------------------SETUP--------------------------------------///  
 //seteando un backup para la database. si se rompe usas local 
 var url = process.env.DB_URL || "mongodb://localhost/yelp_camp";
-
+console.log(process.env.DB_URL);
+console.log(process.env.MAP_BOX_API_KEY);
+console.log(process.env.OCD_API_KEY);
 // conectar a la base de datos si no existe la crea dinamicamente
 // localversion and cloud using mongolabdb
 mongoose.connect(url);

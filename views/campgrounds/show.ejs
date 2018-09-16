@@ -61,7 +61,6 @@
 //Show the Map using a SCRIPT <3
    var lat = <%=campground.lat %>;
    var lng = <%=campground.lng %>;
-   
    //Display Map
     var mymap = L.map('mapid').setView([lat, lng],13);
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
