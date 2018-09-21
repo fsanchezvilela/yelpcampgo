@@ -30,7 +30,11 @@
 
     // Handle sign up logic
     router.post("/register",function(req, res){
+        
         var newUser = new User({username: req.body.username});
+        if(req.body.adminCode === "secretcode");{
+            newUser.isAdmin = true;
+        }
         User.register(newUser,req.body.password, function(err, user){ // store creazy HASHHH! <3
          if(err){
              console.log(err);
