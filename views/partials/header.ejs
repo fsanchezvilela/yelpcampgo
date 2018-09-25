@@ -51,7 +51,7 @@
                     <li class="<%= typeof page !== 'undefined' && page === 'login' ? 'active' : '' %>"><a href="/login">Login</a></li>
                     <li class="<%= typeof page !== 'undefined' && page === 'register' ? 'active' : '' %>"><a href="/register">Sign Up</a></li>
                 <% } else { %>
-                    <li><a href="#">
+                    <li><a href="/users/<%=currentUser.id%>">
                     <% if(currentUser.isAdmin){ %>
                         <spam class="glyphicon glyphicon-king"></spam>
                     <% } %>
