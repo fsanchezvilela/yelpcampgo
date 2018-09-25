@@ -7,7 +7,9 @@
     var passport    = require("passport");
     var User        = require("../models/user");
     var Campground  = require("../models/campground");
-    
+    var async       = require("async");
+    var nodemailer  = require("nodemailer");
+    var crypto      = require("crypto");
 //======================================================
 //                  ROOT ROUTE
 //======================================================
@@ -85,6 +87,134 @@
         res.redirect("/campgrounds");
     });
 
+//======================================================
+//                 Password Reset 
+//======================================================
+// GET forgot password
+router.get('/forgot', function (req, res){
+   res.render('forgot');
+});
+// Post forgot password
+router.post('/forgot', function(req,res,next){
+  async.waterfall([ // run the code function by funct
+     function(done){
+        crypto.randomBytes(20, function(err, buf){ //generar random bytes para la token 
+          var token = buf.toString("hex");
+          done(err, token);
+        });   
+     },
+//Set the token and check if email exist
+     function(token, done){
+       User.findOne({email: req.body.email}, function(err, user) {
+           if (!user){
+               req.flash("error", "No account with that email address exists.");
+               return res.redirect("/forgot");
+           }
+         user.resetPasswordToken   = token;
+         user.resetPasswordExpires = Date.now() + 3600000; // expirar token en 1 hora 
+         
+         user.save(function(err){
+            done(err,token,user);
+         });
+       });  
+     },
+// send the token     
+     function(token, user, done){
+        var smtpTransport = nodemailer.createTransport({
+            service: "Gmail",
+            auth:{
+                user: 'yelpcampgo.recovery@gmail.com',
+                pass: process.env.GMAILPW
+            }
+        });
+// options from the email        
+        var mailOptions ={
+           to: user.email,
+           from: 'yelpcampgo.recovery@gmail.com',
+           subject: 'YelpCampGo Account Password Reset',
+           text: 'You are receiving this because you (or someone else) have requested the reset of the password for you account.\n\n'+
+            'Please click on the following link, or paste this into your browser to complet the process: \n\n'+
+            'http://' + req.headers.host + '/reset/' + token + '\n\n'+
+            'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+        };
+// User get the email        
+        smtpTransport.sendMail(mailOptions, function(err){
+            console.log('mail sent');
+            req.flash('success','An e-mail has been sent to ' + user.email + ' with further instructions.');
+            done(err,'done');
+        });
+     }
+    ], function(err){
+        if(err) return next(err);
+        res.redirect('/forgot');
+    }); 
+});
+// pass the token to get the view ejs and parse data <3
+router.get('/reset/:token', function(req, res){
+   User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
+    if (!user) {
+      req.flash('error', 'Password reset token is invalid or has expired.');
+      return res.redirect('/forgot');
+    }
+    res.render('reset', {token: req.params.token});
+  });
+});
+//Post route to reset with token
+router.post('/reset/:token', function(req, res) {
+  async.waterfall([ // evitar usar demasiado callbacks //$gt = greater than
+    function(done) {
+      User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
+        if (!user) {
+          req.flash('error', 'Password reset token is invalid or has expired.');
+          return res.redirect('back');
+        }
+    //SET NEW PASSWORD    
+        if(req.body.password === req.body.confirm) {
+          user.setPassword(req.body.password, function(err) { // .setPassword crea el hash por mi 
+              // remove the token
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+    //SAVE NEW PASWWORD
+            user.save(function(err) {
+              req.logIn(user, function(err) {
+                done(err, user);
+              });
+            });
+          });
+        } else {
+    //Matching error Password
+        req.flash("error", "Passwords do not match.");
+        return res.redirect('back');
+        }
+      });
+    },
+    //Mailing part mandando la confirmacion del cambio de password
+    function(user, done) {
+      var smtpTransport = nodemailer.createTransport({
+        service: 'Gmail', 
+        auth: {
+          user: 'yelpcampgo.recovery@gmail.com',
+          pass: process.env.GMAILPW
+        }
+      });
+    //options en el correo  
+      var mailOptions = {
+        to: user.email,
+        from: 'yelpcampgo.recovery@gmail.com',
+        subject: 'Your password has been changed',
+        text: 'Hello,\n\n' +
+          'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n'
+      };
+      smtpTransport.sendMail(mailOptions, function(err) {
+        req.flash('success', 'Success! Your password has been changed.');
+        done(err);
+      });
+    }
+// GO back to the campgrounds Home    
+  ], function(err) {
+    res.redirect('/campgrounds');
+  });
+});
 //======================================================
 //                  USER PROFILE
 //======================================================
