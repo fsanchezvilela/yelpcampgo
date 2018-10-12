@@ -37,7 +37,7 @@ app.use(express.static(__dirname + "/public"));
 // method override para usar PUT y DELETE de los form request
 app.use(methodOverride("_method"));
 app.use(flash());
- //seedDB();// execute the seed for the database
+//seedDB();// execute the seed for the database
 
 //-------------------PASSPORT CONFIGURATION-------------------------///
 
